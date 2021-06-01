@@ -3,8 +3,18 @@ import base64
 import cv2
 from keras import models
 import numpy as np
-
+import pretreatment
+from mlearn_for_image import preprocess_input
 PATH = lambda p: os.path.abspath(os.path.join(os.path.dirname(__file__), p))
+
+
+def get_text(img, offset=0):
+    text = pretreatment.get_text(img, offset)
+    text = cv2.cvtColor(text, cv2.COLOR_BGR2GRAY)
+    text = text / 255.0
+    h, w = text.shape
+    text.shape = (1, h, w, 1)
+    return text
 
 
 class Verify:
@@ -29,14 +39,45 @@ class Verify:
                          '菠萝', '开瓶器', '电饭煲', '仪表盘', '棉棒', '篮球', '狮子', '蚂蚁', '蜡烛', '茶盅', '印章', '茶几', '啤酒', '档案袋', '挂钟',
                          '刺绣', '铃铛', '护腕', '手掌印', '锦旗', '文具盒', '辣椒酱', '耳塞', '中国结', '蜥蜴', '剪纸', '漏斗', '锣', '蒸笼', '珊瑚',
                          '雨靴', '薯条', '蜜蜂', '日历', '口哨']
-        image = cv2.imread("../pic/verify.png")
-        img = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        img = (img.reshape(1, 120, 177, 1)).astype('int32') / 255
+        img = cv2.imread("../pic/verify.png")
+        text = get_text(img)
+        imgs = np.array(list(pretreatment._get_imgs(img)))
+        imgs = preprocess_input(imgs)
+        text_list = []
         self.LoadTextModel()
-        label = self.textModel.predict(img)
+        label = self.textModel.predict(text)
         label = label.argmax()
         text = verify_titles[label]
+        text_list.append(text)
         print("题目是{}".format(text))
+
+        # 获取下一个词
+        # 根据第一个词的长度来定位第二个词的位置
+        if len(text) == 1:
+            offset = 27
+        elif len(text) == 2:
+            offset = 47
+        else:
+            offset = 60
+        text = get_text(img, offset=offset)
+        if text.mean() < 0.95:
+            label = self.textModel.predict(text)
+            label = label.argmax()
+            text = verify_titles[label]
+            text_list.append(text)
+        print("题目是{}".format(text_list))
+
+        # 加载图片分类器
+        self.LoadImgModel()
+        labels = self.imgModel.predict(imgs)
+        labels = labels.argmax(axis=1)
+        results = []
+        for pos, label in enumerate(labels):
+            l = verify_titles[label]
+            print(pos + 1, l)
+            if l in text_list:
+                results.append(str(pos + 1))
+        return results
 
 
 if __name__ == '__main__':
