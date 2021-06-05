@@ -99,3 +99,5 @@ if __name__ == '__main__':
     print(imgs.shape)
     imgs = imgs.reshape(-1, 8)
     print(np.unique(imgs, axis=0).shape)
+
+
