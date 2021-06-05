@@ -32,14 +32,14 @@ class Verify:
         text.shape = (1, h, w, 1)
         return text
 
-    def verify(self):
+    def verify(self, i):
         verify_titles = ['打字机', '调色板', '跑步机', '毛线', '老虎', '安全帽', '沙包', '盘子', '本子', '药片', '双面胶', '龙舟', '红酒', '拖把', '卷尺',
                          '海苔', '红豆', '黑板', '热水袋', '烛台', '钟表', '路灯', '沙拉', '海报', '公交卡', '樱桃', '创可贴', '牌坊', '苍蝇拍', '高压锅',
                          '电线', '网球拍', '海鸥', '风铃', '订书机', '冰箱', '话梅', '排风机', '锅铲', '绿豆', '航母', '电子秤', '红枣', '金字塔', '鞭炮',
                          '菠萝', '开瓶器', '电饭煲', '仪表盘', '棉棒', '篮球', '狮子', '蚂蚁', '蜡烛', '茶盅', '印章', '茶几', '啤酒', '档案袋', '挂钟',
                          '刺绣', '铃铛', '护腕', '手掌印', '锦旗', '文具盒', '辣椒酱', '耳塞', '中国结', '蜥蜴', '剪纸', '漏斗', '锣', '蒸笼', '珊瑚',
                          '雨靴', '薯条', '蜜蜂', '日历', '口哨']
-        img = Image.open("verify.png")
+        img = Image.open("../pic/verify{}.png".format(i))
         text = self.get_text(img)
         imgs = np.array(list(pretreatment._get_imgs(img)))
         imgs = preprocess_input(imgs)
@@ -82,4 +82,5 @@ class Verify:
 
 
 if __name__ == '__main__':
-    Verify().verify()
+    for i in range(1,10000):
+        Verify().verify(i)
