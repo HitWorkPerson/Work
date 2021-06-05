@@ -1,14 +1,11 @@
 import os.path
 import base64
 import cv2
-import numpy as np
 from PIL import Image
 from keras import models
 import numpy as np
-
-
-# import pretreatment
-# from mlearn_for_image import preprocess_input
+import pretreatment
+from mlearn_for_image import preprocess_input
 
 
 class Verify:
@@ -28,7 +25,7 @@ class Verify:
 
     def get_text(self, img):
         img_array = np.array(img)
-        text = img_array[3:22, 120 + 0:177 + 0]
+        text = pretreatment.get_text(img_array)
         text = cv2.cvtColor(text, cv2.COLOR_BGR2GRAY)
         text = text / 255.0
         h, w = text.shape
@@ -44,44 +41,44 @@ class Verify:
                          '雨靴', '薯条', '蜜蜂', '日历', '口哨']
         img = Image.open("verify.png")
         text = self.get_text(img)
-        # # imgs = np.array(list(pretreatment._get_imgs(img)))
-        # # imgs = preprocess_input(imgs)
-        # text_list = []
+        imgs = np.array(list(pretreatment._get_imgs(img)))
+        imgs = preprocess_input(imgs)
+        text_list = []
         self.LoadTextModel()
         label = self.textModel.predict(text)
         label = label.argmax()
         text = verify_titles[label]
-        print(text)
-        # text_list.append(text)
-        # print("题目是{}".format(text))
-        #
-        # # 获取下一个词
-        # # 根据第一个词的长度来定位第二个词的位置
-        # if len(text) == 1:
-        #     offset = 27
-        # elif len(text) == 2:
-        #     offset = 47
-        # else:
-        #     offset = 60
-        # text = get_text(img, offset=offset)
-        # if text.mean() < 0.95:
-        #     label = self.textModel.predict(text)
-        #     label = label.argmax()
-        #     text = verify_titles[label]
-        #     text_list.append(text)
-        # print("题目是{}".format(text_list))
-        #
-        # # 加载图片分类器
-        # self.LoadImgModel()
-        # labels = self.imgModel.predict(imgs)
-        # labels = labels.argmax(axis=1)
-        # results = []
-        # for pos, label in enumerate(labels):
-        #     l = verify_titles[label]
-        #     print(pos + 1, l)
-        #     if l in text_list:
-        #         results.append(str(pos + 1))
-        # return results
+        text_list.append(text)
+        print("题目是{}".format(text))
+
+        # 获取下一个词
+        # 根据第一个词的长度来定位第二个词的位置
+        if len(text) == 1:
+            offset = 27
+        elif len(text) == 2:
+            offset = 47
+        else:
+            offset = 60
+        text = pretreatment.get_text(img, offset=offset)
+        if text.mean() < 0.95:
+            label = self.textModel.predict(text)
+            label = label.argmax()
+            text = verify_titles[label]
+            text_list.append(text)
+        print("题目是{}".format(text_list))
+
+        # 加载图片分类器
+        self.LoadImgModel()
+        labels = self.imgModel.predict(imgs)
+        labels = labels.argmax(axis=1)
+        results = []
+        for pos, label in enumerate(labels):
+            l = verify_titles[label]
+            print(pos + 1, l)
+            if l in text_list:
+                results.append(str(pos + 1))
+        print(results)
+        return results
 
 
 if __name__ == '__main__':
